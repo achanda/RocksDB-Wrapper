@@ -1,7 +1,7 @@
 [submodule "lib/rocksdb"]
 	path = lib/rocksdb
 	url = https://github.com/achanda/rocksdb.git
-	branch = main
+	branch = 957e8c2d0944ba49db34ab508eaa1bd5576369d6
 [submodule "lib/KV-WorkloadGenerator"]
 	path = lib/KV-WorkloadGenerator
 	url = https://github.com/SSD-Brandeis/KV-WorkloadGenerator
