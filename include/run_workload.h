@@ -198,6 +198,18 @@ int runWorkload(DBEnv* env) {
       << options.statistics->ToString() << std::endl;
   }
 
+  std::string db_get_core_joules = options.statistics->getHistogramString(rocksdb::Histograms::DB_GET_CORE_JOULES);
+  std::cout << "DB_GET_CORE_JOULES" << "\n" << db_get_core_joules << std::endl;
+
+  std::string db_get_filter_core_joules = options.statistics->getHistogramString(rocksdb::Histograms::DB_GET_FILTER_CORE_JOULES);
+  std::cout  << "DB_GET_FILTER_CORE_JOULES" << "\n" << db_get_filter_core_joules << std::endl;
+
+  std::string db_get_index_core_joules = options.statistics->getHistogramString(rocksdb::Histograms::DB_GET_INDEX_CORE_JOULES);
+  std::cout << "DB_GET_INDEX_CORE_JOULES" << "\n" << db_get_index_core_joules << std::endl;
+
+  std::string db_get_disk_core_joules = options.statistics->getHistogramString(rocksdb::Histograms::DB_GET_DISK_CORE_JOULES);
+  std::cout << "DB_GET_DISK_CORE_JOULES" << "\n" << db_get_disk_core_joules << std::endl;
+
   return 1;
 }
 

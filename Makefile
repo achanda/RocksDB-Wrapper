@@ -5,7 +5,7 @@ BUILD_DIR = build
 
 all: $(BUILD_DIR)
 	@cd $(BUILD_DIR) && cmake -DCMAKE_BUILD_TYPE=$(BUILD_TYPE) ..
-	@cmake --build $(BUILD_DIR)
+	@cmake --build $(BUILD_DIR)  -- -j `nproc`
 
 $(BUILD_DIR):
 	@mkdir -p $(BUILD_DIR)
