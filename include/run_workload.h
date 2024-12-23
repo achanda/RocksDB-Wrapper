@@ -22,7 +22,7 @@ std::mutex mtx;
 std::condition_variable cv;
 bool compaction_complete = false;
 
-void printExperimentalSetup(DBEnv* env);
+void printExperimentalSetup(DBEnv* env, uint32_t workload_size);
 
 void printLSM(rocksdb::DB* db) {
     if (db == nullptr) {
@@ -126,8 +126,6 @@ int runWorkload(DBEnv* env) {
   auto compaction_listener = std::make_shared<CompactionsListener>();
   options.listeners.emplace_back(compaction_listener);
 
-  printExperimentalSetup(env);
-
   Status s = DB::Open(options, kDBPath, &db);
   if (!s.ok()) {
     std::cerr << s.ToString() << std::endl;
@@ -152,6 +150,7 @@ int runWorkload(DBEnv* env) {
     system("sudo sh -c 'echo 3 >/proc/sys/vm/drop_caches'");
   }
 
+  printExperimentalSetup(env, workload_size);
   if (env->IsPerfIOStatEnabled()) {
     rocksdb::SetPerfLevel(rocksdb::PerfLevel::kEnableTimeAndCPUTimeExceptForMutex);
     rocksdb::get_perf_context()->Reset();
@@ -269,7 +268,7 @@ int runWorkload(DBEnv* env) {
   return 1;
 }
 
-void printExperimentalSetup(DBEnv* env) {
+void printExperimentalSetup(DBEnv* env, uint32_t workload_size) {
   int l = 10;
   std::cout << std::setw(l) << "cmpt_sty"
     << std::setw(l) << "cmpt_pri"
@@ -282,6 +281,7 @@ void printExperimentalSetup(DBEnv* env) {
     << std::setw(l) << "L1_size"
     << std::setw(l) << "blk_cch"
     << std::setw(l) << "BPK"
+    << std::setw(l) << "workload_size"
     << "\n";
 
   std::cout << std::setw(l) << env->compaction_style
@@ -295,5 +295,6 @@ void printExperimentalSetup(DBEnv* env) {
     << std::setw(l) << env->GetMaxBytesForLevelBase()
     << std::setw(l) << env->block_cache
     << std::setw(l) << env->bits_per_key
+    << std::setw(l) << workload_size
     << std::endl;
 }
