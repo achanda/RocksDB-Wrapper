@@ -13,6 +13,7 @@
 #include <mutex>
 #include <sstream>
 #include <thread>
+#include <numeric>
 
 #include "config_options.h"
 
@@ -22,6 +23,60 @@ std::condition_variable cv;
 bool compaction_complete = false;
 
 void printExperimentalSetup(DBEnv* env);
+
+void printLSM(rocksdb::DB* db) {
+    if (db == nullptr) {
+        std::cerr << "Error: DB pointer is null" << std::endl;
+        return;
+    }
+
+    // Get the default column family handle
+    rocksdb::ColumnFamilyHandle* default_cf = db->DefaultColumnFamily();
+
+    // Retrieve metadata for the default column family
+    rocksdb::ColumnFamilyMetaData cf_meta;
+    db->GetColumnFamilyMetaData(default_cf, &cf_meta);
+
+    std::cout << "LSM-tree structure:" << std::endl;
+    std::cout << "-------------------" << std::endl;
+
+    // Iterate through each level and print detailed information
+    for (const auto& level : cf_meta.levels) {
+        uint64_t level_element_count = 0;
+        uint64_t level_size = 0;
+
+        std::cout << "Level " << level.level << ":" << std::endl;
+
+        for (const auto& file : level.files) {
+            level_element_count += file.num_entries;
+            level_size += file.size;
+            std::cout << "  File: " << file.name
+                      << ", Size: " << file.size
+                      << " bytes, Entries: " << file.num_entries << std::endl;
+        }
+
+        std::cout << "Total for Level " << level.level
+                  << ": " << level_element_count << " elements, "
+                  << level_size << " bytes" << std::endl;
+        std::cout << std::endl;
+    }
+
+    // Print total element count across all levels
+    uint64_t total_elements = std::accumulate(
+        cf_meta.levels.begin(), cf_meta.levels.end(), 0ULL,
+        [](uint64_t sum, const rocksdb::LevelMetaData& level) {
+            return sum + std::accumulate(
+                level.files.begin(), level.files.end(), 0ULL,
+                [](uint64_t file_sum, const rocksdb::SstFileMetaData& file) {
+                    return file_sum + file.num_entries;
+                }
+            );
+        }
+    );
+
+    std::cout << "-------------------" << std::endl;
+    std::cout << "Total elements across all levels: " << total_elements << std::endl;
+}
 
 class CompactionsListener : public EventListener {
 public:
@@ -174,6 +229,7 @@ int runWorkload(DBEnv* env) {
   }
 
   workload_file.close();
+  printLSM(db);
 
   std::vector<std::string> live_files;
   uint64_t manifest_size;
