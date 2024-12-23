@@ -281,7 +281,7 @@ void printExperimentalSetup(DBEnv* env, uint32_t workload_size) {
     << std::setw(l) << "L1_size"
     << std::setw(l) << "blk_cch"
     << std::setw(l) << "BPK"
-    << std::setw(l) << "workload_size"
+    << std::setw(l) << "WSZ" //workload size
     << "\n";
 
   std::cout << std::setw(l) << env->compaction_style
