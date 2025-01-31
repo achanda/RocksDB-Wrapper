@@ -197,7 +197,7 @@ class DBEnv {
 
 #pragma region[TableOptions]
   // disable block cache if this is set to true
-  bool no_block_cache = false;
+  bool no_block_cache = true;
 
   // 0 means, cache will be set to nullptr: if no_block_cache is true otherwise
   // RocksDB will automatically create and use a 32MB internal cache
