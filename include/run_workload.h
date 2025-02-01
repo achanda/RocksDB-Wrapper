@@ -47,14 +47,6 @@ void printLSM(rocksdb::DB* db) {
 
         std::cout << "Level " << level.level << ":" << std::endl;
 
-        for (const auto& file : level.files) {
-            level_element_count += file.num_entries;
-            level_size += file.size;
-            std::cout << "  File: " << file.name
-                      << ", Size: " << file.size
-                      << " bytes, Entries: " << file.num_entries << std::endl;
-        }
-
         std::cout << "Total for Level " << level.level
                   << ": " << level_element_count << " elements, "
                   << level_size << " bytes" << std::endl;
