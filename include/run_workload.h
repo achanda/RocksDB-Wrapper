@@ -100,6 +100,83 @@ void WaitForCompactions(DB* db) {
   }
 }
 
+// Configure RocksDB options for bulk loading
+rocksdb::Options GetBulkLoadOptions() {
+    rocksdb::Options options;
+    
+    // Memory and write optimization
+    options.IncreaseParallelism(std::thread::hardware_concurrency());
+    options.OptimizeLevelStyleCompaction();
+    options.write_buffer_size = 256 * 1024 * 1024;  // 256MB
+    options.max_write_buffer_number = 4;
+    options.min_write_buffer_number_to_merge = 1;
+    options.memtable_factory.reset(new rocksdb::VectorRepFactory(1000000));
+    
+    // Disable features that slow down bulk loading
+    options.compression = rocksdb::kNoCompression;
+    options.level0_file_num_compaction_trigger = (1 << 30);
+    options.level0_slowdown_writes_trigger = (1 << 30);
+    options.level0_stop_writes_trigger = (1 << 30);
+    
+    // File system optimization
+    options.use_direct_reads = true;
+    options.use_direct_io_for_flush_and_compaction = true;
+    
+    return options;
+}
+
+int BulkLoad(const std::string& filename) {
+    constexpr size_t BATCH_SIZE = 500000;  // Increased batch size for bulk load
+    rocksdb::WriteOptions write_options;
+
+     DB* db;
+   
+    Status status = rocksdb::DB::Open(GetBulkLoadOptions(), kDBPath, &db);
+    if (!status.ok()) {
+    	std::cerr << status.ToString() << std::endl;
+    	return -1;
+    }
+
+    // Critical performance options
+    write_options.sync = false;
+    write_options.disableWAL = true;
+    write_options.ignore_missing_column_families = false;
+    write_options.no_slowdown = true;
+
+    std::ifstream file(filename);
+    if (!file) return -1;
+
+    rocksdb::WriteBatch batch;
+    size_t count = 0;
+    std::string line;
+
+    while (std::getline(file, line)) {
+        std::istringstream iss(line);
+        std::string op, key, value;
+        
+        // Parse line with format "I <key> <value>"
+        if (!(iss >> op >> key >> value) || op != "I") continue;
+        
+        // Verify no extra data in line
+        std::string extra;
+        if (iss >> extra) continue;
+
+        batch.Put(key, value);
+        
+        if (++count % BATCH_SIZE == 0) {
+            if (auto s = db->Write(write_options, &batch); !s.ok()) return -1;
+            batch.Clear();
+        }
+    }
+
+    // Flush remaining entries
+    if (count % BATCH_SIZE != 0) {
+        if (auto s = db->Write(write_options, &batch); !s.ok()) return -1;
+    }
+
+    return 0;
+}
+
 int runWorkload(DBEnv* env) {
   DB* db;
   Options options;
@@ -110,10 +187,10 @@ int runWorkload(DBEnv* env) {
 
   configOptions(env, &options, &table_options, &write_options, &read_options, &flush_options);
 
-  if (env->IsDestroyDatabaseEnabled()) {
+  /*if (env->IsDestroyDatabaseEnabled()) {
     DestroyDB(kDBPath, options);
     std::cout << "Destroying database ..." << std::endl;
-  }
+  }*/
 
   auto compaction_listener = std::make_shared<CompactionsListener>();
   options.listeners.emplace_back(compaction_listener);
