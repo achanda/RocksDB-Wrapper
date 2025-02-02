@@ -22,7 +22,11 @@ int main(int argc, char *argv[]) {
     DestroyDB(kDBPath, options);
     std::cout << "Destroying database ..." << std::endl;
   }
+
+  std::cout << "STARTING BULK LOAD" << std::endl;
   BulkLoad("workload.txt");
+  std::cout << "ENDED BULK LOAD" << std::endl;
+  printLSM();
   int s = runWorkload(env);
   return 0;
 }

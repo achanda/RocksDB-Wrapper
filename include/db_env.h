@@ -88,7 +88,7 @@ class DBEnv {
   bool enable_thread_tracking = false;
 
   // if true, allow multi-writers to update mem tables in parallel.
-  bool allow_concurrent_memtable_write = false;
+  bool allow_concurrent_memtable_write = true;
 
   // the memory size for stats snapshots, default is 1MB
   size_t stats_history_buffer_size = 1024 * 1024;

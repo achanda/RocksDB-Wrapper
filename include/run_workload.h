@@ -24,7 +24,15 @@ bool compaction_complete = false;
 
 void printExperimentalSetup(DBEnv* env, uint32_t workload_size);
 
-void printLSM(rocksdb::DB* db) {
+void printLSM() {
+    DB* db;
+    Options options;
+
+    Status status = rocksdb::DB::Open(options, kDBPath, &db);
+    if (!status.ok()) {
+        std::cerr << status.ToString() << std::endl;
+        return;
+    }
     if (db == nullptr) {
         std::cerr << "Error: DB pointer is null" << std::endl;
         return;
@@ -68,6 +76,12 @@ void printLSM(rocksdb::DB* db) {
 
     std::cout << "-------------------" << std::endl;
     std::cout << "Total elements across all levels: " << total_elements << std::endl;
+
+    Status s = db->Close();
+    if (!s.ok()) {
+      std::cerr << s.ToString() << std::endl;
+      return;
+    }
 }
 
 class CompactionsListener : public EventListener {
@@ -110,8 +124,8 @@ rocksdb::Options GetBulkLoadOptions() {
     options.write_buffer_size = 256 * 1024 * 1024;  // 256MB
     options.max_write_buffer_number = 4;
     options.min_write_buffer_number_to_merge = 1;
-    options.memtable_factory.reset(new rocksdb::VectorRepFactory(1000000));
     
+     options.create_if_missing = true;
     // Disable features that slow down bulk loading
     options.compression = rocksdb::kNoCompression;
     options.level0_file_num_compaction_trigger = (1 << 30);
@@ -131,7 +145,9 @@ int BulkLoad(const std::string& filename) {
 
      DB* db;
    
+     //options.PrepareForBulkLoad();
     Status status = rocksdb::DB::Open(GetBulkLoadOptions(), kDBPath, &db);
+    //Status status = rocksdb::DB::Open(options, kDBPath, &db);
     if (!status.ok()) {
     	std::cerr << status.ToString() << std::endl;
     	return -1;
@@ -174,6 +190,12 @@ int BulkLoad(const std::string& filename) {
         if (auto s = db->Write(write_options, &batch); !s.ok()) return -1;
     }
 
+
+    Status s = db->Close();
+    if (!s.ok()) {
+      std::cerr << s.ToString() << std::endl;
+      return 1;
+    }
     return 0;
 }
 
@@ -297,7 +319,7 @@ int runWorkload(DBEnv* env) {
   }
 
   workload_file.close();
-  printLSM(db);
+  //printLSM(db);
 
   std::vector<std::string> live_files;
   uint64_t manifest_size;
