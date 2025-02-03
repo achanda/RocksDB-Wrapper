@@ -55,12 +55,17 @@ void printLSM() {
 
         std::cout << "Level " << level.level << ":" << std::endl;
 
+        // Iterate through files in the level and sum up entries and sizes
+        for (const auto& file : level.files) {
+            level_element_count += file.num_entries;
+            level_size += file.size;
+        }
+
         std::cout << "Total for Level " << level.level
-                  << ": " << level_element_count << " elements, "
-                  << level_size << " bytes" << std::endl;
+              << ": " << level_element_count << " elements, "
+              << level_size << " bytes" << std::endl;
         std::cout << std::endl;
     }
-
     // Print total element count across all levels
     uint64_t total_elements = std::accumulate(
         cf_meta.levels.begin(), cf_meta.levels.end(), 0ULL,
@@ -139,63 +144,90 @@ rocksdb::Options GetBulkLoadOptions() {
     return options;
 }
 
-int BulkLoad(const std::string& filename) {
-    constexpr size_t BATCH_SIZE = 500000;  // Increased batch size for bulk load
-    rocksdb::WriteOptions write_options;
+int BulkLoad(const std::string& filename, const std::string& db_path) {
+    // Create and configure Options
+    Options options;
+    options.create_if_missing = true;
+    options.statistics = CreateDBStatistics();
+    options.target_file_size_base = 1024 * 1024 * 1024;
+    options.write_buffer_size = options.target_file_size_base;
+    options.max_bytes_for_level_base = options.target_file_size_base;
+    options.level0_file_num_compaction_trigger = 2;
+    options.target_file_size_multiplier = 1;
+    options.compression = rocksdb::kNoCompression;
 
-     DB* db;
-   
-     //options.PrepareForBulkLoad();
-    Status status = rocksdb::DB::Open(GetBulkLoadOptions(), kDBPath, &db);
-    //Status status = rocksdb::DB::Open(options, kDBPath, &db);
-    if (!status.ok()) {
-    	std::cerr << status.ToString() << std::endl;
-    	return -1;
-    }
+    // Configure table options
+    BlockBasedTableOptions table_options;
+    table_options.filter_policy.reset(NewBloomFilterPolicy(10, false));
+    options.table_factory.reset(NewBlockBasedTableFactory(table_options));
 
-    // Critical performance options
-    write_options.sync = false;
-    write_options.disableWAL = true;
-    write_options.ignore_missing_column_families = false;
-    write_options.no_slowdown = true;
-
-    std::ifstream file(filename);
-    if (!file) return -1;
-
-    rocksdb::WriteBatch batch;
-    size_t count = 0;
-    std::string line;
-
-    while (std::getline(file, line)) {
-        std::istringstream iss(line);
-        std::string op, key, value;
-        
-        // Parse line with format "I <key> <value>"
-        if (!(iss >> op >> key >> value) || op != "I") continue;
-        
-        // Verify no extra data in line
-        std::string extra;
-        if (iss >> extra) continue;
-
-        batch.Put(key, value);
-        
-        if (++count % BATCH_SIZE == 0) {
-            if (auto s = db->Write(write_options, &batch); !s.ok()) return -1;
-            batch.Clear();
-        }
-    }
-
-    // Flush remaining entries
-    if (count % BATCH_SIZE != 0) {
-        if (auto s = db->Write(write_options, &batch); !s.ok()) return -1;
-    }
-
-
-    Status s = db->Close();
+    // Open the database
+    DB* db;
+    Status s = DB::Open(options, db_path, &db);
     if (!s.ok()) {
-      std::cerr << s.ToString() << std::endl;
-      return 1;
+	std::cout << "Could not open rocksdb: " << s.ToString() << std::endl;
+        return -1;
     }
+
+    // Prepare for bulk loading
+    SstFileWriter sst_file_writer(EnvOptions(), options);
+    std::string tmp_file = filename + ".sst";
+    s = sst_file_writer.Open(tmp_file);
+    if (!s.ok()) {
+        delete db;
+	std::cout << "Could not open sst file: " << s.ToString() << std::endl;
+        return -1;
+    }
+
+    // Read data from the input file and add to SST file writer
+    std::ifstream input_file(filename);
+    std::string line;
+    std::vector<std::pair<std::string, std::string>> key_value_pairs;
+
+    while (std::getline(input_file, line)) {
+      std::istringstream iss(line);
+      std::string indicator, key, value;
+      if (iss >> indicator >> key >> value) {
+        if (indicator == "I") {
+            key_value_pairs.emplace_back(key, value);
+        }
+      }
+    }
+
+    std::sort(key_value_pairs.begin(), key_value_pairs.end());
+
+    for (const auto& pair : key_value_pairs) {
+      s = sst_file_writer.Put(pair.first, pair.second);
+      if (!s.ok()) {
+        sst_file_writer.Finish();
+        delete db;
+        return -1;
+      }
+   }
+
+    // Finish writing to the SST file
+    s = sst_file_writer.Finish();
+    if (!s.ok()) {
+        delete db;
+	std::cout << "Could not finish writing to sst file: " << s.ToString() << std::endl;
+        return -1;
+    }
+
+    // Ingest the external SST file
+    IngestExternalFileOptions ingest_options;
+    s = db->IngestExternalFile({tmp_file}, ingest_options);
+    if (!s.ok()) {
+	delete db;
+	std::cout << "Could not ingest sst file: " << s.ToString() << std::endl;
+	return -1;
+    }
+    
+    // Clean up the temporary SST file
+    std::remove(tmp_file.c_str());
+
+    // Close the database
+    delete db;
+
     return 0;
 }
 
@@ -208,11 +240,6 @@ int runWorkload(DBEnv* env) {
   FlushOptions flush_options;
 
   configOptions(env, &options, &table_options, &write_options, &read_options, &flush_options);
-
-  /*if (env->IsDestroyDatabaseEnabled()) {
-    DestroyDB(kDBPath, options);
-    std::cout << "Destroying database ..." << std::endl;
-  }*/
 
   auto compaction_listener = std::make_shared<CompactionsListener>();
   options.listeners.emplace_back(compaction_listener);
@@ -319,7 +346,6 @@ int runWorkload(DBEnv* env) {
   }
 
   workload_file.close();
-  //printLSM(db);
 
   std::vector<std::string> live_files;
   uint64_t manifest_size;

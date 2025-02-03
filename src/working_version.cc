@@ -24,9 +24,9 @@ int main(int argc, char *argv[]) {
   }
 
   std::cout << "STARTING BULK LOAD" << std::endl;
-  BulkLoad("workload.txt");
+  BulkLoad("workload.txt", kDBPath);
   std::cout << "ENDED BULK LOAD" << std::endl;
   printLSM();
-  int s = runWorkload(env);
+  //int s = runWorkload(env);
   return 0;
 }
