@@ -17,7 +17,7 @@ def main():
     ]
     
     for bits in range(0, 17, 2):
-        filename = f"output_b{bits:02d}.log"
+        filename = f"output_b{bits:02d}.txt"
         command = base_command + [f"--bits_per_key={bits}"]
         
         print(f"Running with bits_per_key={bits}...", flush=True)
