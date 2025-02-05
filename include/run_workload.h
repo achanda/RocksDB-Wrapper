@@ -250,7 +250,7 @@ int runWorkload(DBEnv* env) {
     return -1;
   }
 
-  std::ifstream workload_file("workload.txt");
+  std::ifstream workload_file("query_workload.txt");
   if (!workload_file.is_open()) {
     std::cerr << "Failed to open workload file." << std::endl;
     return -1;
@@ -279,7 +279,7 @@ int runWorkload(DBEnv* env) {
     options.statistics = rocksdb::CreateDBStatistics();
   }
 
-  workload_file.open("workload.txt");
+  workload_file.open("query_workload.txt");
   if (!workload_file.is_open()) {
     std::cerr << "Failed to reopen workload file." << std::endl;
     return -1;
