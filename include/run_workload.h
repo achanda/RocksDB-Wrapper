@@ -206,7 +206,7 @@ int BulkLoad(const std::string& filename, const std::string& db_path) {
     return 0;
 }
 
-int runWorkload(DBEnv* env) {
+int runWorkload(DBEnv* env, const std::string& filename) {
   DB* db;
   Options options;
   WriteOptions write_options;
@@ -225,7 +225,7 @@ int runWorkload(DBEnv* env) {
     return -1;
   }
 
-  std::ifstream workload_file("query_workload.txt");
+  std::ifstream workload_file(filename);
   if (!workload_file.is_open()) {
     std::cerr << "Failed to open workload file." << std::endl;
     return -1;
@@ -238,11 +238,6 @@ int runWorkload(DBEnv* env) {
   }
   workload_file.close();
 
-  if (env->clear_system_cache) {
-    std::cout << "Clearing system cache ..." << std::endl;
-    system("sudo sh -c 'echo 3 >/proc/sys/vm/drop_caches'");
-  }
-
   printExperimentalSetup(env, workload_size);
   if (env->IsPerfIOStatEnabled()) {
     rocksdb::SetPerfLevel(rocksdb::PerfLevel::kEnableTimeAndCPUTimeExceptForMutex);
@@ -254,7 +249,7 @@ int runWorkload(DBEnv* env) {
     options.statistics = rocksdb::CreateDBStatistics();
   }
 
-  workload_file.open("query_workload.txt");
+  workload_file.open(filename);
   if (!workload_file.is_open()) {
     std::cerr << "Failed to reopen workload file." << std::endl;
     return -1;
