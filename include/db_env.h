@@ -180,7 +180,7 @@ class DBEnv {
   // maximum number of concurrent background jobs (compactions and flushes)
   // if it is 1, RocksDB still run 2 threads one for compaction and
   // another for flush
-  int max_background_jobs = 1;
+  int max_background_jobs = 10;
 
   // No pending compaction anytime, try and see
   int soft_pending_compaction_bytes_limit = 0;
@@ -303,7 +303,7 @@ class DBEnv {
 
 #pragma region[WriteOptions]
   // if true, this write request is of lower priority if compaction is behind
-  bool low_pri = true;
+  bool low_pri = false;
 
   // if true, the write will be flushed from the operating system buffer cache
   // before the write is considered complete. If true, write will be slower.
