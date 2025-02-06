@@ -119,31 +119,6 @@ void WaitForCompactions(DB* db) {
   }
 }
 
-// Configure RocksDB options for bulk loading
-rocksdb::Options GetBulkLoadOptions() {
-    rocksdb::Options options;
-    
-    // Memory and write optimization
-    options.IncreaseParallelism(std::thread::hardware_concurrency());
-    options.OptimizeLevelStyleCompaction();
-    options.write_buffer_size = 256 * 1024 * 1024;  // 256MB
-    options.max_write_buffer_number = 4;
-    options.min_write_buffer_number_to_merge = 1;
-    
-     options.create_if_missing = true;
-    // Disable features that slow down bulk loading
-    options.compression = rocksdb::kNoCompression;
-    options.level0_file_num_compaction_trigger = (1 << 30);
-    options.level0_slowdown_writes_trigger = (1 << 30);
-    options.level0_stop_writes_trigger = (1 << 30);
-    
-    // File system optimization
-    options.use_direct_reads = true;
-    options.use_direct_io_for_flush_and_compaction = true;
-    
-    return options;
-}
-
 int BulkLoad(const std::string& filename, const std::string& db_path) {
     // Create and configure Options
     Options options;
