@@ -257,6 +257,8 @@ int runWorkload(DBEnv* env, const std::string& filename) {
 
   auto it = db->NewIterator(read_options);
   uint32_t counter = 0;
+  uint32_t q_not_found = 0;
+  uint32_t q_ok = 0;
 
   while (!workload_file.eof()) {
     char instruction;
@@ -288,7 +290,13 @@ int runWorkload(DBEnv* env, const std::string& filename) {
     case 'Q':  // Query
       workload_file >> key;
       s = db->Get(read_options, key, &value);
-      if (!s.ok()) std::cerr << s.ToString() << std::endl;
+      if (s.IsNotFound()) {
+        q_not_found++;
+      } else if (s.ok()) {
+	q_ok++;
+      } else {
+        std::cerr << s.ToString() << std::endl;
+      }
       ++counter;
       break;
 
@@ -340,6 +348,8 @@ int runWorkload(DBEnv* env, const std::string& filename) {
       << options.statistics->ToString() << std::endl;
   }
 
+  std::cout << "Number of NotFounds" << "\n" << q_not_found << std::endl;
+  std::cout << "Number of oks" << "\n" << q_ok << std::endl;
   std::string db_get_core_joules = options.statistics->getHistogramString(rocksdb::Histograms::DB_GET_CORE_JOULES);
   std::cout << "DB_GET_CORE_JOULES" << "\n" << db_get_core_joules << std::endl;
 
