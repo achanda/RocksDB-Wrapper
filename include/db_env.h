@@ -132,10 +132,10 @@ class DBEnv {
 
   /**
    * Filter Type
-   * 1 for Bloom filter (default)
-   * 2 for Ribbon filter
+   * 1 for kBloomFilter (default)
+   * 2 for kRibbonFilter
    */
-  uint16_t filter_type = 1;  // [f] lower case
+  uint16_t filter_type = 1;  // [t] for filter type
 
   /**
    * Compaction Priority

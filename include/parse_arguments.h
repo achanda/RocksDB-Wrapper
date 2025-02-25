@@ -61,6 +61,10 @@ int parse_arguments(int argc, char *argv[], DBEnv *env) {
       group1, "bits_per_key",
       "The number of bits per key assigned to Bloom filter [def: 10]",
       {'b', "bits_per_key"});
+  args::ValueFlag<int> filter_type_cmd(
+      group1, "filter_type",
+      "[Filter type: 1 for kBloomFilter, 2 for kRibbonFilter; def: 1]",
+      {'t', "filter_type"});
   args::ValueFlag<int> block_cache_cmd(
       group1, "bb", "Block cache size in MB [def: 8 MB]", {"bb"});
   args::ValueFlag<int> enable_perf_iostat_cmd(
@@ -108,6 +112,8 @@ int parse_arguments(int argc, char *argv[], DBEnv *env) {
                                                : env->compaction_style;
   env->bits_per_key =
       bits_per_key_cmd ? args::get(bits_per_key_cmd) : env->bits_per_key;
+  env->filter_type =
+      filter_type_cmd ? args::get(filter_type_cmd) : env->filter_type;
   env->block_cache =
       block_cache_cmd ? args::get(block_cache_cmd) : env->block_cache;
   env->SetPerfIOStat(enable_perf_iostat_cmd ? args::get(enable_perf_iostat_cmd)
