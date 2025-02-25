@@ -43,9 +43,19 @@ void configOptions(DBEnv *env, Options *options,
   if (env->bits_per_key == 0) {
     ;  // do nothing
   } else {
-    // currently build full filter instead of block-based filter
-    table_options->filter_policy.reset(
-        NewBloomFilterPolicy(env->bits_per_key, false));
+    switch (env->filter_type) {
+      case 1:  // Bloom filter
+        table_options->filter_policy.reset(
+            NewBloomFilterPolicy(env->bits_per_key, false));
+        break;
+      case 2:  // Ribbon filter
+        table_options->filter_policy.reset(
+            NewRibbonFilterPolicy(env->bits_per_key));
+        break;
+      default:
+        std::cerr << "Error[" << __FILE__ << " : " << __LINE__
+                  << "]: Invalid filter type!" << std::endl;
+    }
   }
 
   switch (env->compaction_pri) {

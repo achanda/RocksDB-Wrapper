@@ -131,6 +131,13 @@ class DBEnv {
   double bits_per_key = 10;  // [b]
 
   /**
+   * Filter Type
+   * 1 for Bloom filter (default)
+   * 2 for Ribbon filter
+   */
+  uint16_t filter_type = 1;  // [f] lower case
+
+  /**
    * Compaction Priority
    * 1 for kMinOverlappingRatio
    * 2 for kByCompensatedSize
