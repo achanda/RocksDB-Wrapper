@@ -350,8 +350,12 @@ int runWorkload(DBEnv* env, const std::string& filename) {
 
   std::cout << "Number of NotFounds" << "\n" << q_not_found << std::endl;
   std::cout << "Number of oks" << "\n" << q_ok << std::endl;
+  
   std::string db_get_core_joules = options.statistics->getHistogramString(rocksdb::Histograms::DB_GET_CORE_JOULES);
   std::cout << "DB_GET_CORE_JOULES" << "\n" << db_get_core_joules << std::endl;
+
+  std::string db_get_ret1_core_joules = options.statistics->getHistogramString(rocksdb::Histograms::DB_GET_RET1_CORE_JOULES);
+  std::cout << "DB_GET_RET1_CORE_JOULES" << "\n" << db_get_ret1_core_joules << std::endl;
 
   std::string db_get_filter_core_joules = options.statistics->getHistogramString(rocksdb::Histograms::DB_GET_FILTER_CORE_JOULES);
   std::cout  << "DB_GET_FILTER_CORE_JOULES" << "\n" << db_get_filter_core_joules << std::endl;
@@ -361,6 +365,9 @@ int runWorkload(DBEnv* env, const std::string& filename) {
 
   std::string db_get_disk_core_joules = options.statistics->getHistogramString(rocksdb::Histograms::DB_GET_DISK_CORE_JOULES);
   std::cout << "DB_GET_DISK_CORE_JOULES" << "\n" << db_get_disk_core_joules << std::endl;
+
+  std::string db_get_ret2_core_joules = options.statistics->getHistogramString(rocksdb::Histograms::DB_GET_RET2_CORE_JOULES);
+  std::cout << "DB_GET_RET2_CORE_JOULES" << "\n" << db_get_ret2_core_joules << std::endl;
 
   return 1;
 }
