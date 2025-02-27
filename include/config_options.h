@@ -50,7 +50,7 @@ void configOptions(DBEnv *env, Options *options,
         break;
       case 2:  // Ribbon filter
         table_options->filter_policy.reset(
-            NewRibbonFilterPolicy(env->bits_per_key));
+            NewRibbonFilterPolicy(env->bits_per_key, -1));
         break;
       default:
         std::cerr << "Error[" << __FILE__ << " : " << __LINE__
