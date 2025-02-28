@@ -32,6 +32,8 @@ void configOptions(DBEnv *env, Options *options,
       env->delete_obsolete_files_period_micros;
   options->allow_mmap_reads = env->allow_mmap_reads;
   options->allow_mmap_writes = env->allow_mmap_writes;
+  options->optimize_filters_for_hits = 0;
+  options->memtable_whole_key_filtering = 1;
 #pragma endregion
 
   options->max_bytes_for_level_multiplier = env->size_ratio;
