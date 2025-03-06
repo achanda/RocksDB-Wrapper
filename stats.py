@@ -47,7 +47,7 @@ def parse_key_value_pairs(text):
 
 def main():
     for file in os.listdir('.'):
-        if re.match(r'output_b\d{2}\.txt$', file):
+        if re.match(r'output_b\d{2}_\d{1}\.txt$', file):
             perf_dict = extract_last_perf_context(file)
             if perf_dict:
                 # Compute total latency for each category

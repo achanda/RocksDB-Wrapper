@@ -219,6 +219,9 @@ int runWorkload(DBEnv* env, const std::string& filename) {
   auto compaction_listener = std::make_shared<CompactionsListener>();
   options.listeners.emplace_back(compaction_listener);
 
+  options.memtable_whole_key_filtering = 1;
+  options.optimize_filters_for_hits = 0;
+
   Status s = DB::Open(options, kDBPath, &db);
   if (!s.ok()) {
     std::cerr << s.ToString() << std::endl;
