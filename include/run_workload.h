@@ -354,14 +354,15 @@ int runWorkload(DBEnv* env, const std::string& filename) {
   std::cout << "Number of NotFounds" << "\n" << q_not_found << std::endl;
   std::cout << "Number of oks" << "\n" << q_ok << std::endl;
   
+  // Print all power-related histograms
+  std::cout << "\n====== POWER MEASUREMENT HISTOGRAMS ======\n" << std::endl;
+
+  // All core histograms
   std::string db_get_core_joules = options.statistics->getHistogramString(rocksdb::Histograms::DB_GET_CORE_JOULES);
   std::cout << "DB_GET_CORE_JOULES" << "\n" << db_get_core_joules << std::endl;
 
-  std::string db_get_ret1_core_joules = options.statistics->getHistogramString(rocksdb::Histograms::DB_GET_RET1_CORE_JOULES);
-  std::cout << "DB_GET_RET1_CORE_JOULES" << "\n" << db_get_ret1_core_joules << std::endl;
-
   std::string db_get_filter_core_joules = options.statistics->getHistogramString(rocksdb::Histograms::DB_GET_FILTER_CORE_JOULES);
-  std::cout  << "DB_GET_FILTER_CORE_JOULES" << "\n" << db_get_filter_core_joules << std::endl;
+  std::cout << "DB_GET_FILTER_CORE_JOULES" << "\n" << db_get_filter_core_joules << std::endl;
 
   std::string db_get_index_core_joules = options.statistics->getHistogramString(rocksdb::Histograms::DB_GET_INDEX_CORE_JOULES);
   std::cout << "DB_GET_INDEX_CORE_JOULES" << "\n" << db_get_index_core_joules << std::endl;
@@ -369,8 +370,31 @@ int runWorkload(DBEnv* env, const std::string& filename) {
   std::string db_get_disk_core_joules = options.statistics->getHistogramString(rocksdb::Histograms::DB_GET_DISK_CORE_JOULES);
   std::cout << "DB_GET_DISK_CORE_JOULES" << "\n" << db_get_disk_core_joules << std::endl;
 
-  std::string db_get_ret2_core_joules = options.statistics->getHistogramString(rocksdb::Histograms::DB_GET_RET2_CORE_JOULES);
-  std::cout << "DB_GET_RET2_CORE_JOULES" << "\n" << db_get_ret2_core_joules << std::endl;
+  // All package histograms
+  std::string db_get_package_joules = options.statistics->getHistogramString(rocksdb::Histograms::DB_GET_PACKAGE_JOULES);
+  std::cout << "DB_GET_PACKAGE_JOULES" << "\n" << db_get_package_joules << std::endl;
+
+  std::string db_get_filter_package_joules = options.statistics->getHistogramString(rocksdb::Histograms::DB_GET_FILTER_PACKAGE_JOULES);
+  std::cout << "DB_GET_FILTER_PACKAGE_JOULES" << "\n" << db_get_filter_package_joules << std::endl;
+
+  std::string db_get_index_package_joules = options.statistics->getHistogramString(rocksdb::Histograms::DB_GET_INDEX_PACKAGE_JOULES);
+  std::cout << "DB_GET_INDEX_PACKAGE_JOULES" << "\n" << db_get_index_package_joules << std::endl;
+
+  std::string db_get_disk_package_joules = options.statistics->getHistogramString(rocksdb::Histograms::DB_GET_DISK_PACKAGE_JOULES);
+  std::cout << "DB_GET_DISK_PACKAGE_JOULES" << "\n" << db_get_disk_package_joules << std::endl;
+
+  // All dram histograms
+  std::string db_get_dram_joules = options.statistics->getHistogramString(rocksdb::Histograms::DB_GET_DRAM_JOULES);
+  std::cout << "DB_GET_DRAM_JOULES" << "\n" << db_get_dram_joules << std::endl;
+
+  std::string db_get_filter_dram_joules = options.statistics->getHistogramString(rocksdb::Histograms::DB_GET_FILTER_DRAM_JOULES);
+  std::cout << "DB_GET_FILTER_DRAM_JOULES" << "\n" << db_get_filter_dram_joules << std::endl;
+
+  std::string db_get_index_dram_joules = options.statistics->getHistogramString(rocksdb::Histograms::DB_GET_INDEX_DRAM_JOULES);
+  std::cout << "DB_GET_INDEX_DRAM_JOULES" << "\n" << db_get_index_dram_joules << std::endl;
+
+  std::string db_get_disk_dram_joules = options.statistics->getHistogramString(rocksdb::Histograms::DB_GET_DISK_DRAM_JOULES);
+  std::cout << "DB_GET_DISK_DRAM_JOULES" << "\n" << db_get_disk_dram_joules << std::endl;
 
   return 1;
 }
