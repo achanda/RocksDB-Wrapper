@@ -206,6 +206,9 @@ class DBEnv {
   // disable block cache if this is set to true
   bool no_block_cache = true;
 
+  // Level at which bloom filter starts being applied (default: 0 means all levels)
+  int bloom_before_level = 0;
+
   // 0 means, cache will be set to nullptr: if no_block_cache is true otherwise
   // RocksDB will automatically create and use a 32MB internal cache
   int block_cache = 0;

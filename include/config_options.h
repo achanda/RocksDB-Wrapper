@@ -193,7 +193,7 @@ void configOptions(DBEnv *env, Options *options,
   table_options->metadata_block_size = env->metadata_block_size;
   table_options->pin_top_level_index_and_filter =
       env->pin_top_level_index_and_filter;
-
+  
   switch (env->index_shortening) {
     case 1:
       table_options->index_shortening =

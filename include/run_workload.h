@@ -227,6 +227,15 @@ int runWorkload(DBEnv* env, const std::string& filename) {
     std::cerr << s.ToString() << std::endl;
     return -1;
   }
+  
+  // Set bloom_before_level using SetOptions if specified
+  if (env->bloom_before_level > 0) {
+    std::string bloom_level = std::to_string(env->bloom_before_level);
+    s = db->SetOptions({{"table_factory.filter_policy.bloom_before_level", bloom_level}});
+    if (!s.ok()) {
+      std::cerr << "Failed to set bloom_before_level: " << s.ToString() << std::endl;
+    }
+  }
 
   std::ifstream workload_file(filename);
   if (!workload_file.is_open()) {
