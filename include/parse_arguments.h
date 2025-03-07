@@ -67,6 +67,9 @@ int parse_arguments(int argc, char *argv[], DBEnv *env) {
       {'t', "filter_type"});
   args::ValueFlag<int> block_cache_cmd(
       group1, "bb", "Block cache size in MB [def: 8 MB]", {"bb"});
+  args::ValueFlag<int> bloom_before_level_cmd(
+      group1, "bloom_before_level",
+      "Level at which bloom filter starts being applied (0 means all levels) [def: 0]", {"bloom_before_level"});
   args::ValueFlag<int> enable_perf_iostat_cmd(
       group1, "enable_perf_iostat",
       "Enable RocksDB's internal Perf and IOstat [def: 0]", {"stat"});
@@ -116,6 +119,8 @@ int parse_arguments(int argc, char *argv[], DBEnv *env) {
       filter_type_cmd ? args::get(filter_type_cmd) : env->filter_type;
   env->block_cache =
       block_cache_cmd ? args::get(block_cache_cmd) : env->block_cache;
+  env->bloom_before_level =
+      bloom_before_level_cmd ? args::get(bloom_before_level_cmd) : env->bloom_before_level;
   env->SetPerfIOStat(enable_perf_iostat_cmd ? args::get(enable_perf_iostat_cmd)
                                             : env->IsPerfIOStatEnabled());
   return 0;
