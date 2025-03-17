@@ -196,10 +196,14 @@ class DBEnv {
   // turn off periodic compactions
   uint64_t periodic_compaction_seconds = 0;
 
+  // Flag to control direct I/O settings
+  bool direct_io = true;
   // use O_DIRECT for writes in background flush and compactions.
+  // This is controlled by the direct_io flag.
   bool use_direct_io_for_flush_and_compaction = true;
   // enable direct I/O mode for read/write. Files will be opened in "direct I/O"
   // mode which means that data r/w from the disk will not be cached.
+  // This is controlled by the direct_io flag.
   bool use_direct_reads = true;
 
 #pragma region[TableOptions]

@@ -134,8 +134,12 @@ void configOptions(DBEnv *env, Options *options,
   options->hard_pending_compaction_bytes_limit =
       env->hard_pending_compaction_bytes_limit;
   options->periodic_compaction_seconds = env->periodic_compaction_seconds;
-  options->use_direct_io_for_flush_and_compaction =
-      env->use_direct_io_for_flush_and_compaction;
+  // Set both direct I/O options based on the direct_io flag
+  env->use_direct_io_for_flush_and_compaction = env->direct_io;
+  env->use_direct_reads = env->direct_io;
+  
+  // Apply the settings to the options
+  options->use_direct_io_for_flush_and_compaction = env->use_direct_io_for_flush_and_compaction;
   options->use_direct_reads = env->use_direct_reads;
 
 #pragma region[TableOptions]

@@ -73,6 +73,9 @@ int parse_arguments(int argc, char *argv[], DBEnv *env) {
   args::ValueFlag<int> enable_perf_iostat_cmd(
       group1, "enable_perf_iostat",
       "Enable RocksDB's internal Perf and IOstat [def: 0]", {"stat"});
+  args::ValueFlag<int> direct_io_cmd(
+      group1, "direct_io",
+      "Enable direct I/O for both reads and flush/compaction operations [def: 1]", {"dio"});
 
   try {
     parser.ParseCLI(argc, argv);
@@ -123,5 +126,6 @@ int parse_arguments(int argc, char *argv[], DBEnv *env) {
       bloom_before_level_cmd ? args::get(bloom_before_level_cmd) : env->bloom_before_level;
   env->SetPerfIOStat(enable_perf_iostat_cmd ? args::get(enable_perf_iostat_cmd)
                                             : env->IsPerfIOStatEnabled());
+  env->direct_io = direct_io_cmd ? args::get(direct_io_cmd) : env->direct_io;
   return 0;
 }
