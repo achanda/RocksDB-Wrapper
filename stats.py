@@ -48,7 +48,7 @@ def parse_key_value_pairs(text):
     return result
 
 def extract_histograms(file_path):
-    """ Extract histogram names and statistics from the file """
+    """ Extract histogram names and average values from the file """
     with open(file_path, 'r') as f:
         content = f.read()
     
@@ -62,22 +62,14 @@ def extract_histograms(file_path):
         # Create a dictionary for this histogram
         hist_stats = {}
         
-        # Extract count and average
+        # Extract only average
         count_avg_match = re.search(r'Count: (\d+) Average: ([\d.]+)', stats_text)
         if count_avg_match:
-            hist_stats['count'] = int(count_avg_match.group(1))
             hist_stats['average'] = float(count_avg_match.group(2))
         
-        # Extract min, median, max
-        min_med_max_match = re.search(r'Min: (\d+)\s+Median: ([\d.]+)\s+Max: (\d+)', stats_text)
-        if min_med_max_match:
-            hist_stats['min'] = int(min_med_max_match.group(1))
-            hist_stats['median'] = float(min_med_max_match.group(2))
-            hist_stats['max'] = int(min_med_max_match.group(3))
+        # We're not extracting min, median, max, or percentiles as requested
         
-        # We're not extracting percentiles as requested
-        
-        # Store all stats for this histogram
+        # Store average for this histogram
         histogram_data[name] = hist_stats
     
     return histogram_data
@@ -135,12 +127,10 @@ def main():
                 for name in histogram_order:
                     if name in histogram_data:
                         stats = histogram_data[name]
-                        # Add average, min, median, max to the row
-                        row_data[f"{name}_Count"] = stats.get('count', 'N/A')
-                        row_data[f"{name}_Average"] = stats.get('average', 'N/A')
-                        row_data[f"{name}_Min"] = stats.get('min', 'N/A')
-                        row_data[f"{name}_Median"] = stats.get('median', 'N/A')
-                        row_data[f"{name}_Max"] = stats.get('max', 'N/A')
+                        # Add only average to the row with a cleaner column name
+                        # Remove the DB_ prefix and _JOULES suffix for cleaner column names
+                        clean_name = name.replace('DB_', '').replace('_JOULES', '')
+                        row_data[clean_name] = stats.get('average', 'N/A')
             
             # Add perf context data if available
             if perf_dict:
@@ -150,11 +140,11 @@ def main():
                 total_filter_io_nanos = sum(perf_dict.get(key, 0) for key in FILTER_IO_KEYS)
                 total_disk_io_nanos = sum(perf_dict.get(key, 0) for key in DISK_IO_KEYS)
 
-                # Convert nanoseconds to seconds
-                row_data['Total_CPU_Latency_Seconds'] = total_cpu_nanos / 1e9
-                row_data['Total_Index_IO_Latency_Seconds'] = total_index_io_nanos / 1e9
-                row_data['Total_Filter_IO_Latency_Seconds'] = total_filter_io_nanos / 1e9
-                row_data['Total_Disk_IO_Latency_Seconds'] = total_disk_io_nanos / 1e9
+                # Convert nanoseconds to seconds with cleaner column names
+                row_data['CPU_Latency'] = total_cpu_nanos / 1e9
+                row_data['Index_IO_Latency'] = total_index_io_nanos / 1e9
+                row_data['Filter_IO_Latency'] = total_filter_io_nanos / 1e9
+                row_data['Disk_IO_Latency'] = total_disk_io_nanos / 1e9
             
             # Add the row to our data
             excel_data.append(row_data)
@@ -172,24 +162,36 @@ def main():
                 print("\nHISTOGRAM DATA:")
                 print("-" * 50)
                 
-                # Print histograms in the specified order
+                # Print histograms in the specified order in a more compact format
+                # First create a list of histogram names and averages that exist in the data
+                hist_values = []
                 for name in histogram_order:
                     if name in histogram_data:
                         stats = histogram_data[name]
-                        print(f"{name}:")
-                        print(f"  Count: {stats.get('count', 'N/A')}")
-                        print(f"  Average: {stats.get('average', 'N/A'):.4f}")
-                        print(f"  Min: {stats.get('min', 'N/A')}, Median: {stats.get('median', 'N/A'):.4f}, Max: {stats.get('max', 'N/A')}")
-                        print()
+                        # Remove the DB_ prefix and _JOULES suffix for cleaner display
+                        display_name = name.replace('DB_', '').replace('_JOULES', '')
+                        hist_values.append((display_name, stats.get('average', 'N/A')))
+                
+                # Now print in a more tabular format
+                if hist_values:
+                    # Print headers
+                    print(f"{'Histogram':<25} {'Average':>12}")
+                    print("-" * 38)
+                    
+                    # Print values
+                    for name, avg in hist_values:
+                        print(f"{name:<25} {avg:>12.4f}")
             
             # Print perf context data if available
             if perf_dict:
                 print("\nPERF CONTEXT DATA:")
-                print("-" * 30)
-                print(f"Total CPU Latency: {row_data['Total_CPU_Latency_Seconds']:.6f} seconds")
-                print(f"Total Filter I/O Latency: {row_data['Total_Filter_IO_Latency_Seconds']:.6f} seconds")
-                print(f"Total Index I/O Latency: {row_data['Total_Index_IO_Latency_Seconds']:.6f} seconds")
-                print(f"Total Disk I/O Latency: {row_data['Total_Disk_IO_Latency_Seconds']:.6f} seconds")
+                print("-" * 50)
+                print(f"{'Metric':<30} {'Seconds':>12}")
+                print("-" * 43)
+                print(f"{'Total CPU Latency':<30} {row_data['CPU_Latency']:>12.6f}")
+                print(f"{'Total Filter I/O Latency':<30} {row_data['Filter_IO_Latency']:>12.6f}")
+                print(f"{'Total Index I/O Latency':<30} {row_data['Index_IO_Latency']:>12.6f}")
+                print(f"{'Total Disk I/O Latency':<30} {row_data['Disk_IO_Latency']:>12.6f}")
     
     # Create Excel file if we have data
     if excel_data:
