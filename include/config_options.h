@@ -143,6 +143,11 @@ void configOptions(DBEnv *env, Options *options,
   options->use_direct_reads = env->use_direct_reads;
 
 #pragma region[TableOptions]
+  table_options->pin_l0_filter_and_index_blocks_in_cache = true;
+  table_options->pin_top_level_index_and_filter = true;
+  table_options->cache_index_and_filter_blocks = true;
+  table_options->cache_index_and_filter_blocks_with_high_priority = true;
+
   if (env->block_cache == 0) {
     table_options->no_block_cache = true;
     table_options->cache_index_and_filter_blocks = false;

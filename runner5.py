@@ -15,11 +15,7 @@ def main():
         "--entry_size=128",
         "--buffer_size_in_pages=128",
         "--stat=1",
-        "--pin_l0_filter_and_index_blocks_in_cache=true",
-        "--pin_top_level_index_and_filter=true",
         "--bloom_before_level=6",
-        "--cache_index_and_filter_blocks=true",
-        "--cache_index_and_filter_blocks_with_high_priority=true"
     ]
 
     # Define test configurations
@@ -37,15 +33,15 @@ def main():
             "filter_type": 1  # Bloom filter
         },
         {
-            "name": "direct_io_disabled_cache_0MB_ribbon",
+            "name": "direct_io_disabled_cache_10MB_ribbon",
             "direct_io": False,
-            "block_cache_mb": 0,
+            "block_cache_mb": 10,
             "filter_type": 2  # Ribbon filter
         },
         {
-            "name": "direct_io_disabled_cache_0MB_bloom",
+            "name": "direct_io_disabled_cache_10MB_bloom",
             "direct_io": False,
-            "block_cache_mb": 0,
+            "block_cache_mb": 10,
             "filter_type": 1  # Bloom filter
         },
         {
@@ -61,15 +57,15 @@ def main():
             "filter_type": 1  # Bloom filter
         },
         {
-            "name": "direct_io_enabled_cache_0MB_ribbon",
+            "name": "direct_io_enabled_cache_10MB_ribbon",
             "direct_io": True,
-            "block_cache_mb": 0,
+            "block_cache_mb": 10,
             "filter_type": 2  # Ribbon filter
         },
         {
-            "name": "direct_io_enabled_cache_0MB_bloom",
+            "name": "direct_io_enabled_cache_10MB_bloom",
             "direct_io": True,
-            "block_cache_mb": 0,
+            "block_cache_mb": 10,
             "filter_type": 1  # Bloom filter
         }
     ]
